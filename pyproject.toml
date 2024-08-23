@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "deepfindet"
+name = "deepfindET"
 requires-python = ">=3.9"
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -37,10 +37,10 @@ license = {file = "LICENSE"}
 keywords = ["cryoet", "cryo-et", "tomography", "deep-learning", "segmentation", "copick"]
 
 [project.scripts]
-step1 = "deepfindet.entry_points.step1:cli"
-step2 = "deepfindet.entry_points.step2:cli"
-step3 = "deepfindet.entry_points.step3:cli"
-step4 = "deepfindet.entry_points.step4:cli"
+step1 = "deepfindET.entry_points.step1:cli"
+step2 = "deepfindET.entry_points.step2:cli"
+step3 = "deepfindET.entry_points.step3:cli"
+step4 = "deepfindET.entry_points.step4:cli"
 
 [project.optional-dependencies]
 dev = [
@@ -53,14 +53,14 @@ dev = [
 mpi = ["mpi4py"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["deepfinder"]
+packages = ["deepfindET"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.black]
 line-length = 120
-target_version = ['py311']
+target_version = ['py39']
 
 [tool.ruff]
 select = [
@@ -101,10 +101,7 @@ ignore = [
     "DTZ005", # More datetimes without timezones.
 ]
 line-length = 120
-target-version = "py311"
-exclude = [
-    "mkdocs.yml",
-]
+target-version = "py39"
 
 [tool.ruff.isort]
 known-first-party =["common"]

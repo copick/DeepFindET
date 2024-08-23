@@ -1,10 +1,15 @@
-from . import common as cm
-from . import core
+# This script is adapted from a public GitHub repository.
+# Original source: https://github.com/deep-finder/cryoet-deepfinder/tree/master
+# Author: Inria,  Emmanuel Moebel, Charles Kervrann
+# License: GPL v3.0
+
+from deepfindET.utils import common as cm
+from deepfindET.utils import core
 import numpy as np
 
-class TargetBuilder(core.DeepFinder):
+class TargetBuilder(core.DeepFindET):
     def __init__(self):
-        core.DeepFinder.__init__(self)
+        core.DeepFindET.__init__(self)
 
         self.remove_flag = False # if true, places '0' at object voxels, instead of 'lbl'.
                                  # Usefull in annotation tool, for removing objects from target

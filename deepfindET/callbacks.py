@@ -1,13 +1,10 @@
-import gc
-
-import numpy as np
-import tensorflow as tf
-from sklearn.metrics import precision_recall_fscore_support
-
 from tensorflow.keras.optimizers import Adam
-from deepfindet.utils import copick_tools as copicktools
-from deepfindet.utils import core
+from deepfindET.utils import copick_tools as copicktools
+from deepfindET.utils import core
 
+from sklearn.metrics import precision_recall_fscore_support
+import tensorflow as tf
+import numpy as np
 
 class DatasetSwapCallback(tf.keras.callbacks.Callback):
     def __init__(self, train_instance, path_train, path_valid, plotting_callback=None):

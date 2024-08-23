@@ -1,5 +1,5 @@
-import deepfinder.utils.copick_tools as tools
-from deepfinder.inference import Segment
+import deepfindET.utils.copick_tools as tools
+from deepfindET.inference import Segment
 import tensorflow as tf
 import click, copick
 
@@ -44,7 +44,7 @@ def cli(ctx):
 @click.option(
     "--user-id", 
     type=str, 
-    default="deepfinder", 
+    default="deepfindET", 
     show_default=True, 
     required=False,
     help="User ID filter for input."

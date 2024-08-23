@@ -1,12 +1,10 @@
-# =============================================================================================
-# DeepFinder - a deep learning approach to localize macromolecules in cryo electron tomograms
-# =============================================================================================
-# Copyright (C) Inria,  Emmanuel Moebel, Charles Kervrann, All Rights Reserved, 2015-2021, v1.0
-# License: GPL v3.0. See <https://www.gnu.org/licenses/>
-# =============================================================================================
+# This script is adapted from a public GitHub repository.
+# Original source: https://github.com/deep-finder/cryoet-deepfinder/tree/master
+# Author: Inria,  Emmanuel Moebel, Charles Kervrann
+# License: GPL v3.0
 
-from deepfinder.models import model_loader
-from deepfinder.utils import core
+from deepfindET.models import model_loader
+from deepfindET.utils import core
 import tensorflow as tf
 import numpy as np
 import time

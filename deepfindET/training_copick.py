@@ -1,10 +1,3 @@
-# =============================================================================================
-# DeepFinder - a deep learning approach to localize macromolecules in cryo electron tomograms
-# =============================================================================================
-# Copyright (C) Inria,  Emmanuel Moebel, Charles Kervrann, All Rights Reserved, 2015-2021, v1.0
-# License: GPL v3.0. See <https://www.gnu.org/licenses/>
-# =============================================================================================
-
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
@@ -14,9 +7,9 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras import mixed_precision
 from tensorflow.keras.optimizers import Adam
 
-from deepfindet import callbacks, losses, settings
-from deepfindet.utils import core, augmentdata
-from deepfindet.models import model_loader
+from deepfindET import callbacks, losses, settings
+from deepfindET.utils import core, augmentdata
+from deepfindET.models import model_loader
 
 policy = mixed_precision.Policy("mixed_float16")
 mixed_precision.set_global_policy(policy)

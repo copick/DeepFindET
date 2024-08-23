@@ -2,8 +2,8 @@ from typing import List, Tuple, Union
 import click, copick, zarr
 import numpy as np
 
-import deepfinder.utils.copick_tools as tools
-from deepfinder.utils.target_build import TargetBuilder
+import deepfindET.utils.copick_tools as tools
+from deepfindET.utils.target_build import TargetBuilder
 
 @click.group()
 @click.pass_context

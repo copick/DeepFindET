@@ -1,25 +1,13 @@
-# =============================================================================================
-# DeepFinder - a deep learning approach to localize macromolecules in cryo electron tomograms
-# =============================================================================================
-# Copyright (C) Inria,  Emmanuel Moebel, Charles Kervrann, All Rights Reserved, 2015-2021, v1.0
-# License: GPL v3.0. See <https://www.gnu.org/licenses/>
-# =============================================================================================
 
-import os
-import warnings
-
-import h5py
-import mrcfile
+from sklearn.model_selection import train_test_split
+from scipy.spatial.transform import Rotation as R
+from scipy.ndimage import map_coordinates
+from skimage.measure import block_reduce
+import h5py, mrcfile, os, warnings
 import numpy as np
+import matplotlib
 
 warnings.simplefilter("ignore")  # to mute some warnings produced when opening the tomos with mrcfile
-
-import matplotlib
-from scipy.ndimage import map_coordinates
-from scipy.spatial.transform import Rotation as R
-from skimage.measure import block_reduce
-from sklearn.model_selection import train_test_split
-
 matplotlib.use("agg")  # necessary else: AttributeError: 'NoneType' object has no attribute 'is_interactive'
 import matplotlib.pyplot as plt
 from PIL import Image  # for reading tif

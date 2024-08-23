@@ -1,4 +1,4 @@
-import deepfinder.utils.objl as ol
+import deepfindET.utils.objl as ol
 import os, warnings
 
 class Dataloader:
@@ -71,5 +71,5 @@ class Dataloader:
         return data_list, target_list                
 
 
-#path_dset = '/net/serpico-fs2/emoebel/cryo/shrec2021/localization/test_deepfinder/test_dataloader/data/'
+#path_dset = '/net/serpico-fs2/emoebel/cryo/shrec2021/localization/test_deepfindET/test_dataloader/data/'
 #path_data, path_target, objl_train, objl_valid = Dataloader()(path_dset)

@@ -1,5 +1,5 @@
-import deepfindet.utils.copick_tools as tools
-import deepfindet.utils.evaluate as eval
+import deepfindET.utils.copick_tools as tools
+import deepfindET.utils.evaluate as eval
 import scipy.ndimage as ndimage
 import click, copick, os, json
 from tqdm import tqdm 
@@ -26,7 +26,7 @@ def cli(ctx):
 @click.option(
     "--user-id", 
     type=str, 
-    default="deepfindet", 
+    default="deepfindET", 
     show_default=True, 
     help="User ID filter for input."
 )

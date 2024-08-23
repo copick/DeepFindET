@@ -1,14 +1,10 @@
-# =============================================================================================
-# DeepFinder - a deep learning approach to localize macromolecules in cryo electron tomograms
-# =============================================================================================
-# Copyright (C) Inria,  Emmanuel Moebel, Charles Kervrann, All Rights Reserved, 2015-2021, v1.0
-# License: GPL v3.0. See <https://www.gnu.org/licenses/>
-# =============================================================================================
+# This script is adapted from a public GitHub repository.
+# Original source: https://github.com/deep-finder/cryoet-deepfinder/tree/master
+# Author: Inria,  Emmanuel Moebel, Charles Kervrann
+# License: GPL v3.0
 
-# This file contains classes/functions that are judged not necessary for the user.
-
-from deepfinder.utils import copick_tools as copicktools
-from deepfinder.utils import common as cm
+from deepfindET.utils import copick_tools as copicktools
+from deepfindET.utils import common as cm
 import copick, h5py, os, sys
 from itertools import chain
 from tqdm import tqdm

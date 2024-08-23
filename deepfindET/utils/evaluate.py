@@ -1,6 +1,6 @@
 from scipy.cluster.hierarchy import fcluster, linkage
 from sklearn.metrics import pairwise_distances
-from deepfinder.utils import objl as ol
+from deepfindET.utils import objl as ol
 from scipy.spatial import distance
 from pycm import ConfusionMatrix
 import matplotlib.pyplot as plt

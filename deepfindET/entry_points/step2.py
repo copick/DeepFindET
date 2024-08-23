@@ -1,5 +1,5 @@
-from deepfinder.training_copick import Train
-import deepfinder.utils.common as cm
+from deepfindET.training_copick import Train
+import deepfindET.utils.common as cm
 from typing import List, Tuple, Optional
 import copick, click, os
 

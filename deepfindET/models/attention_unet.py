@@ -1,10 +1,6 @@
 from tensorflow.keras.layers import Conv3D, MaxPooling3D, UpSampling3D, BatchNormalization, concatenate, Input, Activation, Multiply, Add, Lambda, Dropout
 from tensorflow.keras.models import Model
 import tensorflow as tf
-from pydantic import BaseModel, Field
-from typing import List, Optional
-import json
-import os
 
 def conv_block(x, filters):
     x = Conv3D(filters, (3, 3, 3), padding='same')(x)
@@ -55,8 +51,3 @@ def attention_unet(dim_in, Ncl, filters=[32, 48, 64], dropout_rate=0.2):
 
     model = Model(inputs=input, outputs=output)
     return model
-
-class ModelParameters(BaseModel):
-    architecture: str
-    layers: List[int]
-    activation_function: str

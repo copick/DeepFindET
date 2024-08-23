@@ -1,21 +1,18 @@
-# =============================================================================================
-# DeepFinder - a deep learning approach to localize macromolecules in cryo electron tomograms
-# =============================================================================================
-# Copyright (C) Inria,  Emmanuel Moebel, Charles Kervrann, All Rights Reserved, 2015-2021, v1.0
-# License: GPL v3.0. See <https://www.gnu.org/licenses/>
-# =============================================================================================
+# This script is adapted from a public GitHub repository.
+# Original source: https://github.com/deep-finder/cryoet-deepfinder/tree/master
+# Author: Inria,  Emmanuel Moebel, Charles Kervrann
+# License: GPL v3.0
 
-import os
-import numpy as np
-
-import warnings
-warnings.simplefilter('ignore') # to mute some warnings produced when opening the tomos with mrcfile
-
-from lxml import etree
-from copy import deepcopy
 from contextlib import redirect_stdout # for writing txt file
 from openpyxl import load_workbook # for excel files
 from openpyxl import Workbook
+from copy import deepcopy
+from lxml import etree
+import numpy as np
+import os
+
+import warnings
+warnings.simplefilter('ignore') # to mute some warnings produced when opening the tomos with mrcfile
 
 def add_obj(objlIN, label, coord, obj_id=None, tomo_idx=None, orient=(None,None,None), cluster_size=None):
     obj = {

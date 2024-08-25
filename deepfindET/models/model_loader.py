@@ -1,6 +1,6 @@
-from deepfinder.models.res_unet import my_res_unet_model
-from deepfinder.models.unet import my_unet_model 
-from deepfinder import settings
+from deepfindET.models.res_unet import my_res_unet_model
+from deepfindET.models.unet import my_unet_model 
+from deepfindET import settings
 import os
 
 def load_model(dim_in, Ncl, model_name, trained_weights_path=None, filters = [48, 64, 128], dropout_rate = 0):
@@ -24,10 +24,10 @@ def load_model(dim_in, Ncl, model_name, trained_weights_path=None, filters = [48
         print(f'\nTraining {model_name} with Randomly Initialized Weights\n')        
 
     # Define model parameters
-    model_parameters = settings.ModelParameters(
+    model_parameters = settings.NetworkParameters(
         architecture=model_name,
         layers=filters,
-        droput_rate=dropout_rate
+        dropout_rate=dropout_rate
     )
 
     return net, model_parameters

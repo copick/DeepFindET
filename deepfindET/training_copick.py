@@ -1,7 +1,7 @@
 from collections import defaultdict
 import tensorflow as tf
+import copick, json
 import numpy as np
-import copick
 
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras import mixed_precision
@@ -13,7 +13,6 @@ from deepfindET.models import model_loader
 
 policy = mixed_precision.Policy("mixed_float16")
 mixed_precision.set_global_policy(policy)
-
 
 # TODO: add method for resuming training. It should load existing weights and train_history. So when restarting, the plot curves show prececedent epochs
 class Train(core.DeepFindET):
@@ -51,7 +50,7 @@ class Train(core.DeepFindET):
         self.loss = losses.tversky_loss
 
         # random shifts applied when sampling data- and target-patches (in voxels)
-        self.Lrnd = 13
+        self.Lrnd = 15
 
         self.class_weights = None
         self.sample_weights = None  # np array same lenght as objl_train
@@ -59,8 +58,7 @@ class Train(core.DeepFindET):
         self.validTomoIDs = None
         self.targets = None
 
-        self.flag_direct_read = 1
-        self.flag_batch_bootstrap = 0
+        self.flag_batch_bootstrap = 1
 
         self.gpuID = None
 
@@ -88,7 +86,7 @@ class Train(core.DeepFindET):
             self.class_weights[copickRoot.get_object(weights[0]).label] = weights[1]        
 
     def load_model(self, model_name, trained_weights_path = None):
-        self.net, self.model_params = model_loader.load_model(self.dim_in, self.Ncl, model_name, trained_weights_path)        
+        self.net, self.model_parameters = model_loader.load_model(self.dim_in, self.Ncl, model_name, trained_weights_path)        
 
     # This function launches the training procedure. For each epoch, an image is plotted, displaying the progression
     # with different metrics: loss, accuracy, f1-score, recall, precision. Every 10 epochs, the current network weights
@@ -106,14 +104,6 @@ class Train(core.DeepFindET):
     # The network is trained on small 3D patches (i.e. sub-volumes), sampled from the larger tomograms (due to memory
     # limitation). The patch sampling is not realized randomly, but is guided by the macromolecule coordinates contained
     # in so-called object lists (objlist).
-    # Concerning the loading of the dataset, two options are possible:
-    #    flag_direct_read=0: the whole dataset is loaded into memory
-    #    flag_direct_read=1: only the patches are loaded into memory, each time a training batch is generated. This is
-    #                        usefull when the dataset is too large to load into memory. However, the transfer speed
-    #                        between the data server and the GPU host should be high enough, else the procedure becomes
-    #                        very slow.
-    # TODO: delete flag_direct_read. Launch should detect if direct_read is desired by checking if input data_list and
-    #       target_list contain str (path) or numpy array
     def launch(self, path_train, path_valid=None):
         """This function launches the training procedure. For each epoch, an image is plotted, displaying the progression
         with different metrics: loss, accuracy, f1-score, recall, precision. Every 10 epochs, the current network weights
@@ -142,7 +132,7 @@ class Train(core.DeepFindET):
         self.check_attributes()
 
         if self.net is None:
-            self.net, model_parameters = model_loader.load_model(self.dim_in, self.Ncl, 'unet', None)          
+            self.net, self.model_parameters = model_loader.load_model(self.dim_in, self.Ncl, 'unet', None)          
 
         # TensorBoard writer
         log_dir = self.path_out + "tensorboard_logs/"
@@ -166,7 +156,7 @@ class Train(core.DeepFindET):
             except RuntimeError as e:
                 print(e)
         else:
-            print("No GPU found.")
+            print("No GPU found.")        
 
         # Build network (not in constructor, else not possible to init model with weights from previous train round):
         self.net.compile(optimizer=self.optimizer, loss=self.loss, metrics=["accuracy"])
@@ -178,9 +168,9 @@ class Train(core.DeepFindET):
         callbacks.ClearMemoryCallback()
         save_weights_callback = callbacks.SaveWeightsCallback(self.path_out)
         learning_rate_callback = tf.keras.callbacks.ReduceLROnPlateau(
-            monitor="val_loss",
+            monitor="val_f1",
             factor=0.75,
-            patience=10,
+            patience=6,
             min_lr=1e-6,
             verbose=1,
         )
@@ -198,7 +188,9 @@ class Train(core.DeepFindET):
         swap_callback.plotting_callback = plotting_callback
 
         # Save Training Parameters as JSON
-        self.save_training_parameters(path_train,path_valid, model_parameters)
+        self.save_training_parameters(path_train, path_valid, 
+                                      self.model_parameters, 
+                                      learning_rate_callback)
         
         # Train the model using model.fit()
         self.display("Launch training ...")
@@ -314,8 +306,12 @@ class Train(core.DeepFindET):
         Returns:
             TrainingParameters: A Pydantic model containing the training parameters.
         """
+        # Convert the keys of class_weights to strings
+        class_weights_str_keys = {str(key): value for key, value in self.class_weights.items()}
 
         return settings.TrainingParameters(
+            n_class = self.Ncl,
+            dim_in = self.dim_in,
             batch_size=self.batch_size,
             epochs = self.epochs,
             steps_per_epoch=self.steps_per_epoch,
@@ -323,7 +319,7 @@ class Train(core.DeepFindET):
             num_sub_epoch=self.NsubEpoch,
             sample_size=self.sample_size,
             loss=self.loss.name,
-            class_weights=self.class_weights
+            class_weights=class_weights_str_keys
         )
     
     def export_lr_parameters(self, callback):
@@ -337,13 +333,13 @@ class Train(core.DeepFindET):
         """        
         return settings.LearningRateParameters(
             learning_rate=self.learning_rate, 
+            min_learning_rate=callback.min_lr,
             monitor=callback.monitor,
             factor=callback.factor,
-            patience=callback.patience,
-            min_learning_rate=callback.min_lr
+            patience=callback.patience
         )
 
-    def save_training_parameters(self, path_train, path_valid, model_parameters):
+    def save_training_parameters(self, path_train, path_valid, model_parameters, callback):
         """
         Saves the training configuration, including paths, model parameters, and training parameters, to a JSON file.
 
@@ -352,11 +348,17 @@ class Train(core.DeepFindET):
             path_valid (str): The file path to the validation dataset configuration.
             model_parameters (ModelParameters): A Pydantic model containing the model's architecture parameters.
         """        
-        input = settings.ProcessingInput(path_train, path_valid)
-        output = settings.ProcessingOutput(self.path_out)
+        input = settings.ProcessingInput(config_path_train=path_train, 
+                                         config_path_valid=path_valid)
+        output = settings.ProcessingOutput(out_dir=self.path_out)
         training = self.export_training_parameters()
-        learnRate = self.export_lr_parameters()
+        learnRate = self.export_lr_parameters(callback)
         train_config = settings.ExperimentConfig(
-            input, output, model_parameters, training, learnRate
+            input=input, 
+            output=output, 
+            network_architecture=model_parameters, 
+            training_params=training, 
+            learning_params=learnRate
         )
         train_config.save_to_json()
+        print('\nTraining Parameters: ', json.dumps(train_config.dict(),indent=4) )

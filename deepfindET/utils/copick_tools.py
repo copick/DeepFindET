@@ -30,7 +30,29 @@ def read_copick_tomogram_group(copickRoot, voxelSize, tomoAlgorithm, tomoID=None
     # Get First Run and Pull out Tomgram
     run = copickRoot.get_run(copickRoot.runs[0].name) if tomoID is None else copickRoot.get_run(tomoID)
 
-    tomogram = run.get_voxel_spacing(voxelSize).get_tomogram(tomoAlgorithm)
+    # Attempt to Retrieve Algorithm
+    try: 
+        tomogram = run.get_voxel_spacing(voxelSize).get_tomogram(tomoAlgorithm)
+    except:
+        # Query Avaiable Voxel Spacings
+        availableVoxelSpacings = [tomo.voxel_size for tomo in run.voxel_spacings]
+
+        # Report to the user which spacings they can use 
+        raise ValueError(f"Voxel Spacings of '{voxelSize}' was not found. "
+                         f"Available spacings are: {', '.join(map(str, availableVoxelSpacings))}")
+
+
+    # If Tomogram is Unavailable - Report the Correct Available Algorithms
+    if tomogram is None:
+
+        voxel_spacing = run.get_voxel_spacing(voxelSize)      
+
+        # Get available algorithms
+        availableAlgorithms = [tomo.tomo_type for tomo in run.get_voxel_spacing(voxelSize).tomograms]
+        
+        # Report to the user
+        raise ValueError(f"The tomogram with the algorithm '{tomoAlgorithm}' was not found. "
+                         f"Available algorithms are: {', '.join(availableAlgorithms)}")
 
     # Convert Zarr into Vol and Extract Shape
     group = zarr.open(tomogram.zarr())

@@ -22,6 +22,8 @@ class DataAugmentation:
             # self.angle_rotation,            
         ]
 
+        
+
         self.axes = [(0, 1), (0, 2), (1, 2)]
 
         # Set the seed for the random number generators. 

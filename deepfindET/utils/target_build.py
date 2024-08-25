@@ -43,8 +43,8 @@ class TargetBuilder(core.DeepFindET):
 
         N = len(objl)
         dim = target_array.shape
+        self.display(f'Annotating {N} objects ...\n')        
         for p in range(len(objl)):
-            self.display('Annotating object ' + str(p + 1) + ' / ' + str(N) + ' ...')
             lbl = int(objl[p]['label'])
             x = int(objl[p]['x'])
             y = int(objl[p]['y'])

@@ -129,32 +129,6 @@ def cli(ctx):
     help="Number of steps per validation.",
 )
 @click.option(
-    "--lrnd",
-    type=int,
-    required=False,
-    default=13,
-    show_default=True,
-    help="Random shifts when sampling patches (data augmentation).",
-)
-@click.option(
-    "--direct-read/--no-direct-read",
-    type=bool,
-    is_flag=True,
-    required=False,
-    default=False,
-    show_default=True,
-    help="Flag to directly read the data.",
-)
-@click.option(
-    "--batch-bootstrap/--no-batch-bootstrap",
-    type=bool,
-    is_flag=True,
-    required=False,
-    default=True,
-    show_default=True,
-    help="Flag to bootstrap the batches.",
-)
-@click.option(
     "--label-name",
     type=str,
     required=False,
@@ -220,22 +194,18 @@ def train(
     epochs: int = 65,
     steps_per_epoch: int = 250,
     n_valid: int = 20,
-    lrnd: int = 13,
-    direct_read: bool = False,
-    batch_bootstrap: bool = True,
     label_name: str = "spheretargets",
     label_user_id: str = "train-deepfinder",
     label_session_id: str = "0",    
     valid_tomo_ids: str = None,
     train_tomo_ids: str = None,
     class_weights: Optional[List[Tuple[str,float]]] = None,
-):
+    ):
 
     train_model(path_train, train_voxel_size, train_tomo_type, target, output_path, 
                 model_name, model_pre_weights, n_class, path_valid, dim_in, n_sub_epoch, 
-                sample_size, batch_size, epochs, steps_per_epoch, n_valid, lrnd, direct_read, 
-                batch_bootstrap, label_name, label_user_id, label_session_id, valid_tomo_ids, 
-                train_tomo_ids, class_weights)
+                sample_size, batch_size, epochs, steps_per_epoch, n_valid, label_name, 
+                label_user_id, label_session_id, valid_tomo_ids, train_tomo_ids, class_weights)
 
 def train_model(
     path_train: str,
@@ -254,9 +224,6 @@ def train_model(
     epochs: int = 65,
     steps_per_epoch: int = 250,
     n_valid: int = 20,
-    lrnd: int = 13,
-    direct_read: bool = False,
-    batch_bootstrap: bool = True,
     label_name: str = "spheretargets",
     label_user_id: str = "train-deepfinder",
     label_session_id: str = "0",    
@@ -285,9 +252,9 @@ def train_model(
     trainer.epochs = epochs
     trainer.steps_per_epoch = steps_per_epoch
     trainer.Nvalid = n_valid  # steps per validation
-    trainer.Lrnd = lrnd  # random shifts when sampling patches (data augmentation)
-    trainer.flag_direct_read = direct_read
-    trainer.flag_batch_bootstrap = batch_bootstrap
+
+    batch_bootstrap = True
+    direct_read = False    
 
     # Segmentation Target Name And Corresponding UserID
     trainer.labelName = label_name

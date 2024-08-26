@@ -14,9 +14,10 @@ from tensorflow.keras import mixed_precision
 policy = mixed_precision.Policy('mixed_float16')
 mixed_precision.set_global_policy(policy)
 
-class Segment(core.DeepFinder):
-    def __init__(self, Ncl, model_name, path_weights, patch_size=192, gpuID = None):
-        core.DeepFinder.__init__(self)
+class Segment(core.DeepFindET):
+    def __init__(self, Ncl, model_name, path_weights, patch_size=192, 
+                 model_weights = [48, 64, 128], model_dropout = 0, gpuID = None):
+        core.DeepFindET.__init__(self)
 
         self.Ncl = Ncl
 
@@ -29,7 +30,8 @@ class Segment(core.DeepFinder):
         self.check_attributes()
 
         # Initialize Empty network:
-        self.net = model_loader.load_model(patch_size, Ncl, model_name, path_weights)
+        self.net = model_loader.load_model(patch_size, Ncl, model_name, path_weights, 
+                                           model_weights, model_dropout)[0]
 
         # Set GPU configuration
         gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -65,8 +67,8 @@ class Segment(core.DeepFinder):
             numpy array: contains predicted score maps. Array with index order [class,z,y,x]
         """
 
-        if self.net is None:
-            self.load_model(self.dim_in, self.Ncl, 'unet', None)
+        # if self.net is None:
+        #     self.load_model(self.dim_in, self.Ncl, 'unet', None)
 
         self.check_arguments(dataArray, self.P)
 
@@ -160,6 +162,18 @@ class Segment(core.DeepFinder):
     def check_arguments(self, dataArray, patch_size):
         self.is_3D_nparray(dataArray, 'tomogram')
         self.check_array_minsize([dataArray, patch_size], ['tomogram', 'patch'])
+
+    def to_labelmap(self, scoremaps):
+        """Converts scoremaps into a labelmap.
+
+        Args:
+            scoremaps (4D numpy array): array with index order [class,z,y,x]
+
+        Returns:
+            3D numpy array: array with index order [z,y,x]
+        """
+        labelmap = np.int8( np.argmax(scoremaps,3) )
+        return labelmap
 
 if __name__ == "__main__":
     cli()

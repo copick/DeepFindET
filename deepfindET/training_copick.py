@@ -361,4 +361,4 @@ class Train(core.DeepFindET):
             learning_params=learnRate
         )
         train_config.save_to_json()
-        print('\nTraining Parameters: ', json.dumps(train_config.dict(),indent=4) )
+        print('\nTraining Parameters: ', json.dumps(train_config.dict(),indent=4),'\n' )

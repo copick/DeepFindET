@@ -18,7 +18,7 @@ def residual_block(input, filters, kernel_size=(3, 3, 3)):
     x = LeakyReLU()(x)
     return x
 
-def my_res_unet_model(dim_in, Ncl, filters=[48, 64, 128], dropout_rate=0):
+def my_res_unet_model(dim_in, Ncl, filters=[48, 64, 80], dropout_rate=0):
 
     input = Input(shape=(dim_in, dim_in, dim_in, 1))
 

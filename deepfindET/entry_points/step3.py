@@ -1,7 +1,16 @@
 import deepfindET.utils.copick_tools as tools
 from deepfindET.inference import Segment
+import click, copick, json
 import tensorflow as tf
-import click, copick
+from typing import List
+
+def parse_filters(ctx, param, value):
+    try:
+        # Split the comma-separated string and convert each part to an integer
+        filters = [int(x) for x in value.split(",")]
+        return filters
+    except ValueError:
+        raise click.BadParameter("Filters must be a comma-separated list of integers.")
 
 @click.group()
 @click.pass_context
@@ -28,6 +37,23 @@ def cli(ctx):
     type=str,
     required=True,
     help="Path to the Trained Model Weights.",
+)
+@click.option(
+    "--model-filters",
+    type=str,
+    required=False,
+    default="48,64,80",
+    show_default=True,
+    callback=parse_filters,
+    help="Comma-separated list of filters for the model architecture.",
+)
+@click.option(
+    "--model-dropout",
+    type=float,
+    required=False,
+    default=0,
+    show_default=True,
+    help="Dropout for Model Architecture.",
 )
 @click.option(
     "--n-class",
@@ -114,9 +140,11 @@ def cli(ctx):
 )
 def segment(
     predict_config: str,
+    n_class: int,
     model_name: str,
     path_weights: str,
-    n_class: int,
+    model_filters: List[int],
+    model_dropout: float,
     patch_size: int,
     user_id: str,
     session_id: str,
@@ -129,19 +157,22 @@ def segment(
     segmentation_name: str = "segmentation",
 ):
 
-    inference_tomogram_segmentation(predict_config, model_name, path_weights, n_class, patch_size, 
-                                    user_id, session_id, voxel_size, tomogram_algorithm, parallel_mpi, tomo_ids,
-                                    output_scoremap, scoremap_name, segmentation_name)
+    inference_tomogram_segmentation(predict_config, n_class, model_name, path_weights, patch_size, 
+                                    user_id, session_id, voxel_size, model_filters, model_dropout, 
+                                    tomogram_algorithm, parallel_mpi, tomo_ids, model_filters,
+                                    scoremap_name, segmentation_name)
 
 def inference_tomogram_segmentation(
     predict_config: str,
+    n_class: int,
     model_name: str,
     path_weights: str,
-    n_class: int,
     patch_size: int,
     user_id: str,
     session_id: str,
     voxel_size: float = 10,
+    model_filters: List[int] = [48, 64, 80],
+    model_dropout: float = 0,
     tomogram_algorithm: str = "denoised",
     parallel_mpi: bool = False,
     tomo_ids: str = None,
@@ -175,12 +206,17 @@ def inference_tomogram_segmentation(
     # Load Evaluate TomoIDs
     evalTomos = tomo_ids.split(",") if tomo_ids is not None else [run.name for run in copickRoot.runs]
 
+    # Print Segmenation Parameters
+    store_segmentation_parameters(predict_config, n_class, model_name, path_weights, patch_size, user_id,
+                                  session_id, voxel_size, model_filters, model_dropout, tomogram_algorithm,
+                                  tomo_ids, output_scoremap, scoremap_name, segmentation_name)    
+
     # Create Temporary Empty Folder
     for tomoInd in range(len(evalTomos)):
         if (tomoInd + 1) % nProcess == rank:
             # Extract TomoID and Associated Run
             tomoID = evalTomos[tomoInd]
-            print(f'Processing Run: {tomoID}')
+            print(f'\nProcessing Run: {tomoID} ({tomoInd}/{len(evalTomos)})')
 
             # Load data:
             tomo = tools.get_copick_tomogram(
@@ -220,6 +256,52 @@ def inference_tomogram_segmentation(
             )
 
     print("Segmentations Complete!")
+
+def store_segmentation_parameters(predict_config: str,
+    n_class: int,
+    model_name: str,
+    path_weights: str,
+    patch_size: int,
+    user_id: str,
+    session_id: str,
+    voxel_size: float = 10,
+    model_filters: List[int] = [48, 64, 80],
+    model_dropout: float = 0,
+    tomogram_algorithm: str = "denoised",
+    tomo_ids: str = None,
+    output_scoremap: bool = False,
+    scoremap_name: str = "scoremap",
+    segmentation_name: str = "segmentation"):
+
+    parameters = {
+        "input": {
+            "predict_config": predict_config,
+            "voxel_size": voxel_size,
+            "tomogram_algorithm": tomogram_algorithm
+        },
+        "model_architecture": {
+            "n_class": n_class,
+            "model_name": model_name,
+            "path_weights": path_weights,
+            "patch_size": patch_size,
+            "model_filters": model_filters,
+            "model_dropout": model_dropout
+        },
+        "output": {
+            "user_id": user_id,
+            "session_id": session_id,
+            "output_scoremap": output_scoremap,
+            "scoremap_name": scoremap_name,
+            "segmentation_name": segmentation_name,
+            "tomo_ids": tomo_ids
+        }
+    }
+    print('\nSegmentation Parameters: ', json.dumps(parameters,indent=4),'\n')
+
+    # Save to JSON file
+    output_file = f'{user_id}_{session_id}_{segmentation_name}_seg_params.json'
+    with open(output_file, 'w') as json_file:
+        json.dump(parameters, json_file, indent=4)
 
 if __name__ == "__main__":
     cli()

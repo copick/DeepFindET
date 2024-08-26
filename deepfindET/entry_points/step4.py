@@ -40,7 +40,7 @@ def cli(ctx):
 @click.option(
     "--segmentation-session-id", 
     type=str, 
-    default=None, 
+    default=1, 
     show_default=True, 
     help="Session ID filter for input."
 )
@@ -130,7 +130,6 @@ def convert_segmentations_to_coordinates(
     min_protein_size: float = 0.8, 
     ):
 
-
     # Determine if Using MPI or Sequential Processing
     if parallel_mpi:
         from mpi4py import MPI
@@ -142,6 +141,11 @@ def convert_segmentations_to_coordinates(
     else:
         nProcess = 1
         rank = 0
+
+    # Print / Save Localization Parameters
+    store_localization_parameters(predict_config, n_class, user_id, picks_session_id, 
+                                  segmentation_session_id, segmentation_name, voxel_size,
+                                  tomo_ids, path_output, starfile_write_path, min_protein_size)
 
     # Open and read the Config File
     with open(predict_config, 'r') as file:
@@ -167,19 +171,19 @@ def convert_segmentations_to_coordinates(
     remove_index = 0
 
     # Create Temporary Empty Folder 
-    for tomoInd in tqdm(range(len(evalTomos))):
+    for tomoInd in range(len(evalTomos)):
         if (tomoInd + 1) % nProcess == rank: 
-            # Extract TomoID and Associated Run    
-            tomoID = evalTomos[tomoInd]
-            print(f'Processing Run: {tomoID}')
 
-            copickRun = copickRoot.get_run(tomoID)           
+            # Query Run and Extract Segmentation Mask    
+            tomoID = evalTomos[tomoInd]
+            copickRun = copickRoot.get_run(tomoID)       
+            print(f'Processing Run: {tomoID} ({tomoInd})/{len(evalTomos)}')
             labelmap = tools.get_copick_segmentation(copickRun, segmentation_name, user_id, segmentation_session_id)[:]
 
+            # Iterate Through All Protein Classes
             for label in range(2, n_class):
                 
                     protein_name = label_to_name_dict.get(label)
-                    print('Finding Predictions for : ', protein_name)
                     label_objs, _ = ndimage.label(labelmap == label)
 
                     # Filter Candidates based on Object Size
@@ -229,6 +233,36 @@ def convert_segmentations_to_coordinates(
                     tools.write_copick_output(protein_name, tomoID, deepFinderCoords, path_output, pickMethod=user_id, sessionID = picks_session_id)
 
     print('Extraction of Particle Coordinates Complete!')
+
+def store_localization_parameters(predict_config, n_class, user_id, 
+                                  picks_session_id,  segmentation_session_id,
+                                  segmentation_name, voxel_size, tomo_ids, path_output, 
+                                  starfile_write_path, min_protein_size ):
+
+    parameters = {
+        "input": {
+            "predict_config": predict_config,
+            "voxel_size": voxel_size,
+            "user_id": user_id,
+            "segmentation_name": segmentation_name,
+            "segmentation_session_id": segmentation_session_id
+        },
+        "output": {
+            "user_id": "deepfindET",
+            "picks_session_id": picks_session_id,
+            "min_protein_size": min_protein_size,
+            "path_output": path_output,
+            "starfile_write_path": starfile_write_path,
+            "tomo_ids": tomo_ids
+        }
+    }
+    print('\nLocalization Parameters: ', json.dumps(parameters,indent=4),'\n')
+
+    # Save to JSON file
+    output_file = f'{user_id}_{picks_session_id}_localize_params.json'
+    with open(output_file, 'w') as json_file:
+        json.dump(parameters, json_file, indent=4)
+
 
 if __name__ == "__main__":
     cli()

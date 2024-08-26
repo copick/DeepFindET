@@ -3,6 +3,13 @@ import deepfindET.utils.common as cm
 from typing import List, Tuple, Optional
 import copick, click, os
 
+def parse_filters(ctx, param, value):
+    try:
+        # Split the comma-separated string and convert each part to an integer
+        filters = [int(x) for x in value.split(",")]
+        return filters
+    except ValueError:
+        raise click.BadParameter("Filters must be a comma-separated list of integers.")
 
 @click.group()
 @click.pass_context
@@ -51,6 +58,12 @@ def cli(ctx):
     help="Path to store the training results.",
 )
 @click.option(
+    "--n-class",
+    type=int,
+    required=True,
+    help="Number of classes.",
+)
+@click.option(
     "--model-name",
     type=str,
     required=False,
@@ -67,10 +80,21 @@ def cli(ctx):
     help="Pre-Trained Model Weights To Load Prior to Training",
 )
 @click.option(
-    "--n-class",
-    type=int,
-    required=True,
-    help="Number of classes.",
+    "--model-filters",
+    type=str,
+    required=False,
+    default="48,64,80",
+    show_default=True,
+    callback=parse_filters,
+    help="Comma-separated list of filters for the model architecture.",
+)
+@click.option(
+    "--model-dropout",
+    type=float,
+    required=False,
+    default=0,
+    show_default=True,
+    help="Dropout for Model Architecture.",
 )
 @click.option(
     "--dim-in",
@@ -183,9 +207,11 @@ def train(
     train_tomo_type: str,
     target: List[Tuple[str, str, str]],
     output_path: str,
+    n_class: int,
     model_name: str,
     model_pre_weights: str,
-    n_class: int,
+    model_filters: List[int],
+    model_dropout: float,
     path_valid: str = None,
     dim_in: int = 52,
     n_sub_epoch: int = 10,
@@ -204,8 +230,9 @@ def train(
 
     train_model(path_train, train_voxel_size, train_tomo_type, target, output_path, 
                 model_name, model_pre_weights, n_class, path_valid, dim_in, n_sub_epoch, 
-                sample_size, batch_size, epochs, steps_per_epoch, n_valid, label_name, 
-                label_user_id, label_session_id, valid_tomo_ids, train_tomo_ids, class_weights)
+                sample_size, batch_size, epochs, steps_per_epoch, n_valid, model_filters, 
+                model_dropout, label_name, label_user_id, label_session_id, valid_tomo_ids, 
+                train_tomo_ids, class_weights)
 
 def train_model(
     path_train: str,
@@ -224,6 +251,8 @@ def train_model(
     epochs: int = 65,
     steps_per_epoch: int = 250,
     n_valid: int = 20,
+    model_filters: List[int] = [48, 64, 80],
+    model_dropout: float = 0,
     label_name: str = "spheretargets",
     label_user_id: str = "train-deepfinder",
     label_session_id: str = "0",    
@@ -265,7 +294,7 @@ def train_model(
     if class_weights is not None:   trainer.create_class_weights(class_weights, path_train)
       
     # Load Specified Model Architecture and Potential Pre-Trained Weights
-    trainer.load_model(model_name, model_pre_weights)
+    trainer.load_model(model_name, model_pre_weights, model_filters, model_dropout)
 
     # A Certain Number of Tomograms are Loaded Prior to Training (sample_size)
     # And picks from these tomograms are trained for a specified number of epochs (NsubEpoch)

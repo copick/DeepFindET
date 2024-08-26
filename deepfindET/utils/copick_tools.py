@@ -256,7 +256,7 @@ def write_copick_output(
     tomoID,
     finalPicks,
     outputDirectory="refinedCoPicks/ExperimentRuns",
-    pickMethod="deepfinder",
+    pickMethod="deepfindET",
     sessionID="0",
     knownTemplate=False,
 ):

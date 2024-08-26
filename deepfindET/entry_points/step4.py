@@ -125,7 +125,7 @@ def convert_segmentations_to_coordinates(
     voxel_size: float,
     parallel_mpi: bool = False,
     tomo_ids: str = None,
-    path_output: str = "deefinder_predictions/ExperimentRuns",
+    path_output: str = "deepfinder_predictions/ExperimentRuns",
     starfile_write_path: str = None,
     min_protein_size: float = 0.8, 
     ):

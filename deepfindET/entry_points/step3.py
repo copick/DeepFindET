@@ -159,7 +159,7 @@ def segment(
 
     inference_tomogram_segmentation(predict_config, n_class, model_name, path_weights, patch_size, 
                                     user_id, session_id, voxel_size, model_filters, model_dropout, 
-                                    tomogram_algorithm, parallel_mpi, tomo_ids, model_filters,
+                                    tomogram_algorithm, parallel_mpi, tomo_ids, output_scoremap, 
                                     scoremap_name, segmentation_name)
 
 def inference_tomogram_segmentation(

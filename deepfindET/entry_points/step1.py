@@ -209,7 +209,7 @@ def create_train_targets(
 
         # Create Target For the Given Coordinates and Sphere Diameters
         target = targetbuild.generate_with_spheres(objl_coords, target_vol, radius_list).astype(np.uint8)
-        
+
         # Write the Target Tomogram as OME Zarr
         tools.write_ome_zarr_segmentation(copickRun, target, voxel_size, out_name, out_user_id, out_session_id)
 

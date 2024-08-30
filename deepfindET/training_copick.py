@@ -1,6 +1,6 @@
 from collections import defaultdict
 import tensorflow as tf
-import copick, json
+import copick, json, os
 import numpy as np
 
 from tensorflow.keras.utils import to_categorical
@@ -80,13 +80,13 @@ class Train(core.DeepFindET):
     def create_class_weights(self, input_class_weights, copick_path):
 
         copickRoot = copick.from_file(copick_path)
-
         self.class_weights = defaultdict(lambda: 1, {i: 1 for i in range(self.Ncl)})
         for weights in input_class_weights:
             self.class_weights[copickRoot.get_object(weights[0]).label] = weights[1]        
 
-    def load_model(self, model_name, trained_weights_path = None):
-        self.net, self.model_parameters = model_loader.load_model(self.dim_in, self.Ncl, model_name, trained_weights_path)        
+    def load_model(self, model_name, trained_weights_path = None, model_filters = [48, 64, 128], model_dropout_rate = 0):
+        self.net, self.model_parameters = model_loader.load_model(self.dim_in, self.Ncl, model_name, trained_weights_path,
+                                                                  model_filters, model_dropout_rate)        
 
     # This function launches the training procedure. For each epoch, an image is plotted, displaying the progression
     # with different metrics: loss, accuracy, f1-score, recall, precision. Every 10 epochs, the current network weights
@@ -135,7 +135,7 @@ class Train(core.DeepFindET):
             self.net, self.model_parameters = model_loader.load_model(self.dim_in, self.Ncl, 'unet', None)          
 
         # TensorBoard writer
-        log_dir = self.path_out + "tensorboard_logs/"
+        log_dir = os.path.join(self.path_out, "tensorboard_logs")
         tf.summary.create_file_writer(log_dir)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, profile_batch=0)
 
@@ -211,7 +211,7 @@ class Train(core.DeepFindET):
             verbose=1,
         )
 
-        self.net.save(self.path_out + "net_weights_FINAL.h5")
+        self.net.save( os.path.join(self.path_out, "net_weights_FINAL.h5") )
 
     def create_tf_dataset(
         self,
@@ -247,28 +247,42 @@ class Train(core.DeepFindET):
 
     def copick_data_generator(
         self,
-        input_dataset,
-        input_target,
-        batch_size,
-        dim_in,
-        Ncl,
-        flag_batch_bootstrap,
-        organizedPicksDict,
+        input_dataset,  # The dataset from which patches are extracted
+        input_target,  # The corresponding ground truth (labels) for the dataset
+        batch_size,  # Number of samples to generate per batch
+        dim_in,  # Dimension of the input patches
+        Ncl,  # Number of classes for categorical labeling
+        flag_batch_bootstrap,  # Boolean flag to decide if batch bootstrapping is enabled
+        organizedPicksDict,  # Dictionary containing organized picking information
     ):
+
+        # Calculate the padding value for extracting patches (half the dimension size)
         p_in = int(np.floor(dim_in / 2))
 
+         # Get the dimensions of the tomogram from the first tomoID in the organized picks
         tomodim = input_dataset[organizedPicksDict["tomoIDlist"][0]].shape
+        
+        # While loop for generating batches of data
         while True:
+
+            # Generate bootstrap indices if bootstrapping is enabled, otherwise set to None
             pool = core.get_copick_boostrap_idx(organizedPicksDict, batch_size) if flag_batch_bootstrap else None
             # pool = range(0, len(objlist))
 
+            # Initialize an empty list to store selected indices
             idx_list = []
+
+            # Loop over the batch size to generate each sample in the batch
             for i in range(batch_size):
+                
+                # Randomly select an index from the bootstrap pool
                 randomBSidx = np.random.choice(pool["bs_idx"])
                 idx_list.append(randomBSidx)
 
+                # Find the original index position of the selected bootstrap index
                 index = np.where(pool["bs_idx"] == randomBSidx)[0][0]
 
+                # Determine the patch position (x, y, z) within the tomogram
                 x, y, z = core.get_copick_patch_position(
                     tomodim,
                     p_in,
@@ -277,26 +291,36 @@ class Train(core.DeepFindET):
                     pool["protein_coords"][index],
                 )
 
+                # Extract the data patch from the input dataset based on the calculated position
                 patch_data = input_dataset[pool["tomoID_idx"][index]][
                     z - p_in : z + p_in,
                     y - p_in : y + p_in,
                     x - p_in : x + p_in,
                 ]
+
+                # Extract the corresponding target patch (ground truth labels)
                 patch_target = input_target[pool["tomoID_idx"][index]][
                     z - p_in : z + p_in,
                     y - p_in : y + p_in,
                     x - p_in : x + p_in,
                 ]
 
+                # Convert the target patch to categorical format based on the number of classes
                 patch_target = to_categorical(patch_target, Ncl)
+
+                 # Normalize the data patch by subtracting the mean and dividing by the standard deviation
                 patch_data = (patch_data - np.mean(patch_data)) / np.std(patch_data)
 
-                # Apply Augmentations to Cropped Volume
+                # Apply data augmentations (e.g., rotation, flipping) to both data and target patches
                 patch_data, patch_target = self.data_augmentor.apply_augmentations(patch_data, patch_target)
 
+                # Store the processed target patch in the batch target array
                 self.batch_target[i] = patch_target
+                
+                # Store the processed data patch in the batch data array (assuming single channel data)
                 self.batch_data[i, :, :, :, 0] = patch_data
 
+            # Yield the batch data and targets as output to the calling function
             yield self.batch_data, self.batch_target
 
     def export_training_parameters(self):
@@ -307,7 +331,10 @@ class Train(core.DeepFindET):
             TrainingParameters: A Pydantic model containing the training parameters.
         """
         # Convert the keys of class_weights to strings
-        class_weights_str_keys = {str(key): value for key, value in self.class_weights.items()}
+        if self.class_weights is not None:
+            class_weights_str_keys = {str(key): value for key, value in self.class_weights.items()}
+        else: # If No Weights Are Provided, the Equivalent is Essentially 1:1 Weights
+            class_weights_str_keys =  {str(i): 1 for i in range(self.Ncl)}
 
         return settings.TrainingParameters(
             n_class = self.Ncl,
@@ -348,11 +375,30 @@ class Train(core.DeepFindET):
             path_valid (str): The file path to the validation dataset configuration.
             model_parameters (ModelParameters): A Pydantic model containing the model's architecture parameters.
         """        
+
+        # Log Objects Names and Class Values
+        root = copick.from_file(path_train)
+        objects = {obj.name: obj.label for obj in root.pickable_objects}       
+
+        # Initialize ProcessingInput model with configuration paths and target details
         input = settings.ProcessingInput(config_path_train=path_train, 
-                                         config_path_valid=path_valid)
-        output = settings.ProcessingOutput(out_dir=self.path_out)
+                                         config_path_valid=path_valid,
+                                         target_name=self.labelName,
+                                         target_user_id=self.labelUserID,
+                                         target_session_id=self.sessionID,
+                                         )
+
+        # Initialize ProcessingOutput model with output directory and object classes                                         
+        output = settings.ProcessingOutput(out_dir=self.path_out,
+                                           classes=objects)
+
+        # Export training parameters for the experiment                                           
         training = self.export_training_parameters()
+
+        # Export learning rate parameters using the provided callback
         learnRate = self.export_lr_parameters(callback)
+
+        # Create an ExperimentConfig model to encapsulate the entire experiment setup
         train_config = settings.ExperimentConfig(
             input=input, 
             output=output, 
@@ -360,5 +406,7 @@ class Train(core.DeepFindET):
             training_params=training, 
             learning_params=learnRate
         )
+
+         # Save and Print the experiment configuration to a JSON file
         train_config.save_to_json()
         print('\nTraining Parameters: ', json.dumps(train_config.dict(),indent=4),'\n' )

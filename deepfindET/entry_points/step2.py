@@ -153,7 +153,7 @@ def cli(ctx):
     help="Number of steps per validation.",
 )
 @click.option(
-    "--label-name",
+    "--target-name",
     type=str,
     required=False,
     default="spheretargets",
@@ -161,7 +161,7 @@ def cli(ctx):
     help="Name of the segmentation target.",
 )
 @click.option(
-    "--label-user-id",
+    "--target-user-id",
     type=str,
     required=False,
     default="train-deepfinder",
@@ -169,7 +169,7 @@ def cli(ctx):
     help="User ID of the segmentation target.",
 )
 @click.option(
-    "--label-session-id",
+    "--target-session-id",
     type=str,
     required=False,
     default="0",
@@ -220,9 +220,9 @@ def train(
     epochs: int = 65,
     steps_per_epoch: int = 250,
     n_valid: int = 20,
-    label_name: str = "spheretargets",
-    label_user_id: str = "train-deepfinder",
-    label_session_id: str = "0",    
+    target_name: str = "spheretargets",
+    target_user_id: str = "train-deepfinder",
+    target_session_id: str = "0",    
     valid_tomo_ids: str = None,
     train_tomo_ids: str = None,
     class_weights: Optional[List[Tuple[str,float]]] = None,
@@ -231,7 +231,7 @@ def train(
     train_model(path_train, train_voxel_size, train_tomo_type, target, output_path, 
                 model_name, model_pre_weights, n_class, path_valid, dim_in, n_sub_epoch, 
                 sample_size, batch_size, epochs, steps_per_epoch, n_valid, model_filters, 
-                model_dropout, label_name, label_user_id, label_session_id, valid_tomo_ids, 
+                model_dropout, target_name, target_user_id, target_session_id, valid_tomo_ids, 
                 train_tomo_ids, class_weights)
 
 def train_model(
@@ -253,9 +253,9 @@ def train_model(
     n_valid: int = 20,
     model_filters: List[int] = [48, 64, 80],
     model_dropout: float = 0,
-    label_name: str = "spheretargets",
-    label_user_id: str = "train-deepfinder",
-    label_session_id: str = "0",    
+    target_name: str = "spheretargets",
+    target_user_id: str = "train-deepfinder",
+    target_session_id: str = "0",    
     valid_tomo_ids: str = None,
     train_tomo_ids: str = None,
     class_weights: Optional[List[Tuple[str,float]]] = None,        
@@ -286,9 +286,9 @@ def train_model(
     direct_read = False    
 
     # Segmentation Target Name And Corresponding UserID
-    trainer.labelName = label_name
-    trainer.labelUserID = label_user_id
-    trainer.sessionID = label_session_id
+    trainer.labelName = target_name
+    trainer.labelUserID = target_user_id
+    trainer.sessionID = target_session_id
 
     # Assign Class Weights
     if class_weights is not None:   trainer.create_class_weights(class_weights, path_train)
@@ -333,6 +333,9 @@ def train_model(
             test_ratio=0.15,
             savePath=output_path,
         )
+        # Swap if Test Runs is Larger than Validation Runs
+        if len(testList) > len(validationList):
+            testList, validationList = validationList, testList
 
         # Pass the Run IDs to the Training Class
         trainer.validTomoIDs = validationList

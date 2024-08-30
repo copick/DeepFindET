@@ -124,6 +124,8 @@ def get_copick_segmentation(copickRun, segmentationName="segmentationmap", userI
     # Get the Segmentation from the Following Copick Run
     seg = copickRun.get_segmentations(name=segmentationName, user_id=userID, session_id=sessionID)[0]
 
+    # TODO: Add Query To List Out Available Segmentations if Incorrect SegmentationName, UserID, or SessionID is provided. 
+
     # Return the Corresponding Segmentation Volume
     store = seg.zarr()
 

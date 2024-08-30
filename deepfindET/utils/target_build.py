@@ -1,8 +1,3 @@
-# This script is adapted from a public GitHub repository.
-# Original source: https://github.com/deep-finder/cryoet-deepfinder/tree/master
-# Author: Inria,  Emmanuel Moebel, Charles Kervrann
-# License: GPL v3.0
-
 from deepfindET.utils import common as cm
 from deepfindET.utils import core
 import numpy as np
@@ -14,17 +9,6 @@ class TargetBuilder(core.DeepFindET):
         self.remove_flag = False # if true, places '0' at object voxels, instead of 'lbl'.
                                  # Usefull in annotation tool, for removing objects from target
 
-    # Generates segmentation targets from object list. Here macromolecules are annotated with their shape.
-    # INPUTS
-    #   objl: list of dictionaries. Needs to contain [phi,psi,the] Euler angles for orienting the shapes.
-    #   target_array: 3D numpy array that initializes the training target. Allows to pass an array already containing annotated structures like membranes.
-    #                 index order of array should be [z,y,x]
-    #   ref_list: list of binary 3D arrays (expected to be cubic). These reference arrays contain the shape of macromolecules ('1' for 'is object' and '0' for 'is not object')
-    #             The references order in list should correspond to the class label
-    #             For ex: 1st element of list -> reference of class 1
-    #                     2nd element of list -> reference of class 2 etc.
-    # OUTPUT
-    #   target_array: 3D numpy array. '0' for background class, {'1','2',...} for object classes.
     def generate_with_shapes(self, objl, target_array, ref_list):
         """Generates segmentation targets from object list. Here macromolecules are annotated with their shape.
 
@@ -84,19 +68,6 @@ class TargetBuilder(core.DeepFindET):
         self.is_3D_nparray(target_array, 'target_array')
         self.is_list(ref_list, 'ref_list')
 
-    # Generates segmentation targets from object list. Here macromolecules are annotated with spheres.
-    # This method does not require knowledge of the macromolecule shape nor Euler angles in the objl.
-    # On the other hand, it can be that a network trained with 'sphere targets' is less accurate than with 'shape targets'
-    # INPUTS
-    #   objl: list of dictionaries.
-    #   target_array: 3D numpy array that initializes the training target. Allows to pass an array already containing annotated structures like membranes.
-    #                 index order of array should be [z,y,x]
-    #   radius_list: list of sphere radii (in voxels).
-    #             The radii order in list should correspond to the class label
-    #             For ex: 1st element of list -> sphere radius for class 1
-    #                     2nd element of list -> sphere radius for class 2 etc.
-    # OUTPUT
-    #   target_array: 3D numpy array. '0' for background class, {'1','2',...} for object classes.
     def generate_with_spheres(self, objl, target_array, radius_list):
         """Generates segmentation targets from object list. Here macromolecules are annotated with spheres.
         This method does not require knowledge of the macromolecule shape nor Euler angles in the objl.

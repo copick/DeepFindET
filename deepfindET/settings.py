@@ -5,9 +5,13 @@ import os, json
 class ProcessingInput(BaseModel):
     config_path_train: str
     config_path_valid: Optional[str]
+    target_name: str
+    target_user_id: str
+    target_session_id: str
 
 class ProcessingOutput(BaseModel):
     out_dir: str    
+    classes: Dict[str, int]
 
 class TrainingParameters(BaseModel):
     n_class: int

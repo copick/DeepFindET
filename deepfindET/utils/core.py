@@ -332,7 +332,7 @@ def save_history(history, filename):
     return
 
 
-def read_history(filename):
+def read_history(filename, save_fig=True):
     history = {
         "acc": None,
         "loss": None,
@@ -365,7 +365,10 @@ def read_history(filename):
 # INPUTS:
 #   history: dictionary object containing lists. These lists contain scores and metrics wrt epochs.
 #   filename: string '/path/to/net_train_history_plot.png'
-def plot_history(history, filename):
+def plot_history(history, 
+                filename:str = 'net_train_history.png', 
+                save_figure: bool = True):
+
     Ncl = len(history["val_f1"][0])
     legend_names = []
     for lbl in range(0, Ncl):
@@ -417,4 +420,36 @@ def plot_history(history, filename):
     plt.xlabel("epochs")
     plt.grid()
 
-    fig.savefig(filename)
+    if save_figure:
+        fig.savefig(filename)
+
+def convert_hdf5_to_dictionary(filename: str):
+    """
+    Converts an HDF5 file into a nested dictionary. Each group in the HDF5 file becomes a 
+    nested dictionary, and datasets are converted to NumPy arrays.
+
+    Parameters:
+    filename (str): Path to the HDF5 file to be converted.
+
+    Returns:
+    dict: A dictionary representation of the HDF5 file contents.
+    """
+
+    with h5py.File(filename, 'r') as hdf:
+        def recursively_load_dict_contents(hdf_group):
+            """Recursively loads the HDF5 group into a nested dictionary."""
+            ans = {}
+            for key, item in hdf_group.items():
+                # Check if the item is a dataset and convert it to a NumPy array
+                if isinstance(item, h5py.Dataset):
+                    ans[key] = item[()]  # Get the dataset as a NumPy array
+                # If the item is another group, recurse into it and convert it to a dictionary
+                elif isinstance(item, h5py.Group):
+                    ans[key] = recursively_load_dict_contents(item)
+            return ans
+        
+        # Convert the HDF5 file contents into a dictionary
+        history_dict = recursively_load_dict_contents(hdf)
+
+    # Return the fully constructed dictionary
+    return history_dict

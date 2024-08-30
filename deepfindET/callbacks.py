@@ -5,6 +5,7 @@ from deepfindET.utils import core
 from sklearn.metrics import precision_recall_fscore_support
 import tensorflow as tf
 import numpy as np
+import os
 
 class DatasetSwapCallback(tf.keras.callbacks.Callback):
     def __init__(self, train_instance, path_train, path_valid, plotting_callback=None):
@@ -132,7 +133,7 @@ class SaveWeightsCallback(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         if (epoch + 1) % 10 == 0:
-            self.model.save(self.path_out + f"net_weights_epoch{epoch + 1}.h5")
+            self.model.save( os.path.join(self.path_out, f"net_weights_epoch{epoch + 1}.h5") )
 
 
 # Clears the Keras backend session to free up memory - called at the end of every epoch.
@@ -208,8 +209,8 @@ class TrainingPlotCallback(tf.keras.callbacks.Callback):
         self.history["val_precision"].append(scores[0])
 
         # Save history and plot
-        core.save_history(self.history, self.path_out + "net_train_history.h5")
-        core.plot_history(self.history, self.path_out + "net_train_history_plot.png")
+        core.save_history(self.history, os.path.join(self.path_out, "net_train_history.h5") )
+        core.plot_history(self.history, os.path.join(self.path_out, "net_train_history_plot.png") )
 
 
 def log_images_func(model, validation_data, steps):

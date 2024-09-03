@@ -22,8 +22,6 @@ class DataAugmentation:
             # self.angle_rotation,            
         ]
 
-        
-
         self.axes = [(0, 1), (0, 2), (1, 2)]
 
         # Set the seed for the random number generators. 
@@ -56,7 +54,7 @@ class DataAugmentation:
 
     ####################### Intensity Transformations  #######################
 
-    def brightness(self, volume, max_delta=0.2):
+    def brightness(self, volume, max_delta=1.0):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -69,7 +67,7 @@ class DataAugmentation:
         volume += delta
         return volume
 
-    def gaussian_blur(self, volume, sigma_range=(0.5, 1.5)):
+    def gaussian_blur(self, volume, sigma_range=(0.75, 1.25)):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -82,7 +80,7 @@ class DataAugmentation:
         blurred_volume = gaussian_filter(volume, sigma=sigma)
         return blurred_volume    
 
-    def intensity_scaling(self, volume, intensity_range=(0.8, 1.2)):
+    def intensity_scaling(self, volume, intensity_range=(0.25, 1.75)):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -95,7 +93,7 @@ class DataAugmentation:
         scaled_volume = volume * intensity_factor
         return scaled_volume
 
-    def contrast_adjustment(self, volume, contrast_range=(0.8, 1.2)):
+    def contrast_adjustment(self, volume, contrast_range=(0.2, 1.8)):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -128,7 +126,7 @@ class DataAugmentation:
 
     ####################### Geometric Transformations  #######################
 
-    def rotation_180_degrees(self, volume, target, augment_probability=0.5):
+    def rotation_180_degrees(self, volume, target, augment_probability=0.8):
 
         # Apply fixed 180-degree rotation with some probability
         if np.random.rand() < augment_probability:
@@ -143,7 +141,7 @@ class DataAugmentation:
         return volume, target
 
 
-    def angle_rotation(self, volume, target, max_angle=15, augment_probability=0.8):
+    def angle_rotation(self, volume, target, max_angle=30, augment_probability=0.8):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.

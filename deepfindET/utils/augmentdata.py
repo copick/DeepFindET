@@ -54,7 +54,7 @@ class DataAugmentation:
 
     ####################### Intensity Transformations  #######################
 
-    def brightness(self, volume, max_delta=1.0):
+    def brightness(self, volume, max_delta=0.5):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -80,7 +80,7 @@ class DataAugmentation:
         blurred_volume = gaussian_filter(volume, sigma=sigma)
         return blurred_volume    
 
-    def intensity_scaling(self, volume, intensity_range=(0.25, 1.75)):
+    def intensity_scaling(self, volume, intensity_range=(0.5, 1.5)):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.
@@ -93,7 +93,7 @@ class DataAugmentation:
         scaled_volume = volume * intensity_factor
         return scaled_volume
 
-    def contrast_adjustment(self, volume, contrast_range=(0.2, 1.8)):
+    def contrast_adjustment(self, volume, contrast_range=(0.5, 1.5)):
         """
         Parameters:
         volume (numpy.ndarray): The input 3D volume.

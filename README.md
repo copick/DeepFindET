@@ -22,6 +22,6 @@ Also, in order for Keras to work with your Nvidia GPU, you need to install CUDA.
 
 ## Instructions for Use 
 
-Detailed instructions for using DeepFindET are provided in the `tutorials/` folder. These tutorials include jupyter notebooks with comments that guide you through the usage of the package with a synthetic dataset available on the CryoET-Dataportal - including the available command-line options. For example, to run the target generation script:
+Detailed instructions for using DeepFindET are provided in the `tutorials/` folder. These tutorials include jupyter notebooks with comments that guide you through the usage of the package with a synthetic dataset available on the [CryoET-Dataportal](https://cryoetdataportal.czscience.com/datasets/10439?dataset_id=10439) - including the available command-line options. For example, to run the target generation script:
 
 `step1 create --config config_10007.json --target ribosome,9 --seg-target membrane --voxel-size 7.84 --tomogram-algorithm wbp --out-name remotetargets`

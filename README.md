@@ -17,18 +17,11 @@ Before installation, you may need a python environment on your machine. If this 
 
 `conda create --name deepfindet python=3.10`
 `conda activate deepfindet`
-Now, you can install DeepFindET with pip:
-
-`pip install deepfindet`
 
 Also, in order for Keras to work with your Nvidia GPU, you need to install CUDA. Once these steps have been achieved, the user should be able to run DeepFinder.
 
-## Examples
-
-TDB
-
 ## Instructions for Use 
 
-Detailed instructions for using DeepFindET are provided in the `tutorials/` folder. These tutorials include scripts with comments that guide you through the usage of the package, including the available command-line options. For example, to run the target generation script:
+Detailed instructions for using DeepFindET are provided in the `tutorials/` folder. These tutorials include jupyter notebooks with comments that guide you through the usage of the package with a synthetic dataset available on the CryoET-Dataportal - including the available command-line options. For example, to run the target generation script:
 
 `step1 create --config config_10007.json --target ribosome,9 --seg-target membrane --voxel-size 7.84 --tomogram-algorithm wbp --out-name remotetargets`

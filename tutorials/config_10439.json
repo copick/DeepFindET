@@ -24,7 +24,7 @@
             "map_threshold": 0.037
         },
         {
-            "name": "alkaline-phosphate",
+            "name": "alkaline-phosphatase",
             "is_particle": true,
             "pdb_id": "1ZEF",
             "go_id": "UniProtKB:P05187",

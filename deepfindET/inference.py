@@ -16,7 +16,7 @@ mixed_precision.set_global_policy(policy)
 
 class Segment(core.DeepFindET):
     def __init__(self, Ncl, model_name, path_weights, patch_size=192, 
-                 model_weights = [48, 64, 128], model_dropout = 0, gpuID = None):
+                 model_filters = [48, 64, 128], model_dropout = 0, gpuID = None):
         core.DeepFindET.__init__(self)
 
         self.Ncl = Ncl
@@ -31,7 +31,7 @@ class Segment(core.DeepFindET):
 
         # Initialize Empty network:
         self.net = model_loader.load_model(patch_size, Ncl, model_name, path_weights, 
-                                           model_weights, model_dropout)[0]
+                                           model_filters, model_dropout)[0]
 
         # Set GPU configuration
         gpus = tf.config.experimental.list_physical_devices('GPU')

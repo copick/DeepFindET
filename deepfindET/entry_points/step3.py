@@ -201,7 +201,9 @@ def inference_tomogram_segmentation(
     # Load CoPick root
     copickRoot = copick.from_file(predict_config)
 
-    seg = Segment(n_class, model_name, path_weights=path_weights, patch_size=patch_size, gpuID = locGPU)
+    seg = Segment(n_class, model_name, path_weights=path_weights, 
+                  patch_size=patch_size, model_filters = model_filters, model_dropout = model_dropout, 
+                  gpuID = locGPU)
 
     # Load Evaluate TomoIDs
     evalTomos = tomo_ids.split(",") if tomo_ids is not None else [run.name for run in copickRoot.runs]
